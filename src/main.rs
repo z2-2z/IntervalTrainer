@@ -11,6 +11,7 @@ use trainer::TrainerView;
 struct Stats {
     right: [usize; 14],
     wrong: [usize; 14],
+    streak: usize,
 }
 
 #[derive(Copy, Clone, Default, Debug, PartialEq)]

@@ -13,7 +13,7 @@ const ADVANCED_INTERVALS: [usize; 14] = [
 #[component]
 pub fn TrainerView() -> Element {
     let audio_files = load_instrument(CONFIG().instrument);
-    let streak = use_signal(|| 0usize);
+    let round = use_signal(|| 0usize);
     
     rsx! {
         document::Stylesheet { href: asset!("/assets/styles/trainer.css") }
@@ -25,14 +25,14 @@ pub fn TrainerView() -> Element {
         }
         
         IntervalGuesser {
-            streak: streak,
+            round: round,
             num_files: audio_files.len(),
         }
     }
 }
 
 #[component]
-fn IntervalGuesser(streak: Signal<usize>, num_files: usize) -> Element {
+fn IntervalGuesser(round: Signal<usize>, num_files: usize) -> Element {
     let mut rng = rand::rng();
     rng.reseed().expect("Could not seed RNG");
     
@@ -55,9 +55,7 @@ fn IntervalGuesser(streak: Signal<usize>, num_files: usize) -> Element {
             "Trainer"
         }
         
-        p {
-            "streak={streak}"
-        }
+        
         
         p {
             "ascending={ascending} start_point={start_point} interval={interval}"
@@ -71,17 +69,19 @@ fn IntervalGuesser(streak: Signal<usize>, num_files: usize) -> Element {
         
         button {
             onclick: move |_| {
+                let stats = &mut CONFIG.write().stats;
                 if !wrong() {
-                    *streak.write() += 1;
-                    CONFIG.write().stats.right[interval] += 1;
+                    stats.streak += 1;
+                    stats.right[interval] += 1;
                 } else {
-                    *streak.write() = 0;
-                    CONFIG.write().stats.wrong[interval] += 1;
+                    stats.streak = 0;
+                    stats.wrong[interval] += 1;
                 }
+                *round.write() += 1;
                 *wrong.write() = false;
             },
             
-            "solve"
+            "right"
         }
     }
 }
