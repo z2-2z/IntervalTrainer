@@ -31,6 +31,26 @@ fn interval_name(interval: usize) -> &'static str {
 
 #[component]
 pub fn TrainerView() -> Element {
+    let audio_files: &[Asset] = match CONFIG().instrument {
+        Instrument::Piano => instrument::PIANO.as_ref(),
+    };
+    let interval_list = match CONFIG().difficulty {
+        Difficulty::Basic => BASIC_INTERVALS.as_ref(),
+        Difficulty::Advanced => ADVANCED_INTERVALS.as_ref(),
+    };
+    let right: usize = CONFIG().stats.right.iter().sum();
+    let streak = CONFIG().stats.streak;
+    let mut rng = rand::rng();
+    rng.reseed().expect("Could not seed RNG");
+    let ascending = rng.random::<bool>();
+    let interval = interval_list[rng.random_range(..interval_list.len())];
+    let (first, second) = if ascending {
+        let first = rng.random_range(..audio_files.len() - interval);
+        (first, first + interval)
+    } else {
+        let first = rng.random_range(interval..audio_files.len());
+        (first, first - interval)
+    };
     let round = use_signal(|| 0usize);
     
     rsx! {
@@ -48,58 +68,37 @@ pub fn TrainerView() -> Element {
             "stats"
         }
         
+        h1 {
+            "Trainer"
+        }
+        
+        p {
+            "Score: {right}/{round()} | Streak: {streak}"
+        }
+        
         IntervalGuesser {
-            round: round,
+            round,
+            ascending,
+            interval,
+            first,
+            second,
         }
     }
 }
 
 #[component]
-fn IntervalGuesser(round: Signal<usize>) -> Element {
+fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first: usize, second: usize) -> Element {
     let audio_files: &[Asset] = match CONFIG().instrument {
         Instrument::Piano => instrument::PIANO.as_ref(),
     };
-    let difficulty = CONFIG().difficulty;
-    let interval_list = match &difficulty {
+    let interval_list = match CONFIG().difficulty {
         Difficulty::Basic => BASIC_INTERVALS.as_ref(),
         Difficulty::Advanced => ADVANCED_INTERVALS.as_ref(),
     };
     
-    let mut rng = rand::rng();
-    rng.reseed().expect("Could not seed RNG");
-    let ascending = rng.random::<bool>();
-    let interval = interval_list[rng.random_range(..interval_list.len())];
-    let (first, second) = if ascending {
-        let first = rng.random_range(..audio_files.len() - interval);
-        (first, first + interval)
-    } else {
-        let first = rng.random_range(interval..audio_files.len());
-        (first, first - interval)
-    };
-    
     let mut wrong = use_signal(|| false);
-
+    
     rsx! {
-        h1 {
-            "Trainer"
-        }
-        
-        audio {
-            src: audio_files[first],
-            id: "audio-first",
-            controls: false,
-            autoplay: false,
-            display: "none",
-        }
-        
-        audio {
-            src: audio_files[second],
-            id: "audio-second",
-            controls: false,
-            autoplay: false,
-            display: "none",
-        }
-        
         button {
             onclick: move |_| async move {
                 document::eval(
@@ -148,6 +147,24 @@ fn IntervalGuesser(round: Signal<usize>) -> Element {
                     
                     "{interval_name(*i)}"
                 }
+            }
+        }
+        
+        div {
+            audio {
+                src: audio_files[first],
+                id: "audio-first",
+                controls: false,
+                autoplay: false,
+                display: "none",
+            }
+            
+            audio {
+                src: audio_files[second],
+                id: "audio-second",
+                controls: false,
+                autoplay: false,
+                display: "none",
             }
         }
     }
