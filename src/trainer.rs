@@ -1,6 +1,6 @@
 use rand::Rng;
 use dioxus::prelude::*;
-use crate::{Route, CONFIG, instrument::load_instrument, Difficulty};
+use crate::{Route, CONFIG, instrument, Difficulty, Instrument};
 
 const BASIC_INTERVALS: [usize; 7] = [
     2,4,5,7,9,11,12,
@@ -11,7 +11,9 @@ const ADVANCED_INTERVALS: [usize; 14] = [
 
 #[component]
 pub fn TrainerView() -> Element {
-    let audio_files = load_instrument(CONFIG().instrument);
+    let audio_files: &[Asset] = match CONFIG().instrument {
+        Instrument::Piano => instrument::PIANO.as_ref(),
+    };
     let round = use_signal(|| 0usize);
     
     rsx! {
@@ -37,7 +39,7 @@ pub fn TrainerView() -> Element {
 }
 
 #[component]
-fn IntervalGuesser(round: Signal<usize>, audio_files: Vec<Asset>) -> Element {
+fn IntervalGuesser(round: Signal<usize>, audio_files: &'static [Asset]) -> Element {
     let difficulty = CONFIG().difficulty;
     let mut rng = rand::rng();
     rng.reseed().expect("Could not seed RNG");
@@ -95,7 +97,7 @@ fn IntervalGuesser(round: Signal<usize>, audio_files: Vec<Asset>) -> Element {
                             first.currentTime = 0;
                             second.pause();
                             second.currentTime = 0;
-                        }, 1750);
+                        }, 2000);
                     "#
                 ).await.expect("Eval JS code failed");
             },

@@ -14,6 +14,12 @@ def main():
     pattern = re.compile("^([A-Za-z]+)([0-9])$")
     result = {}
     
+    total = 0
+    for entry in os.listdir(dir):
+        total += 1
+    
+    print(f"pub static NAME: [Asset; {total}] = [")
+    
     for entry in os.listdir(dir):
         name, ext = entry.split(".")
         match = pattern.fullmatch(name)
@@ -24,7 +30,9 @@ def main():
         result[idx] = entry
     
     for key in sorted(result):
-        print(f"files.push(asset!(\"/assets/instruments/{instrument}/{result[key]}\"));")
+        print(f"    asset!(\"/assets/instruments/{instrument}/{result[key]}\"),")
+        
+    print("];")
 
 if __name__ == "__main__":
     main()
