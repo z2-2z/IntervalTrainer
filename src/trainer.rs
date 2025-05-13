@@ -24,6 +24,12 @@ pub fn TrainerView() -> Element {
             "settings"
         }
         
+        Link {
+            to: Route::StatisticsView {},
+            
+            "stats"
+        }
+        
         IntervalGuesser {
             round: round,
             num_files: audio_files.len(),

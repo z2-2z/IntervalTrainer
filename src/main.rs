@@ -4,8 +4,10 @@ use dioxus::logger::tracing::Level;
 mod instrument;
 mod settings;
 mod trainer;
+mod statistics;
 use settings::SettingsView;
 use trainer::TrainerView;
+use statistics::StatisticsView;
 
 #[derive(Clone, Default, Debug, PartialEq)]
 struct Stats {
@@ -44,6 +46,9 @@ enum Route {
     
     #[route("/settings")]
     SettingsView,
+    
+    #[route("/statistics")]
+    StatisticsView,
 }
 
 fn main() {
