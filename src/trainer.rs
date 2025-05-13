@@ -38,8 +38,7 @@ pub fn TrainerView() -> Element {
         Difficulty::Basic => BASIC_INTERVALS.as_ref(),
         Difficulty::Advanced => ADVANCED_INTERVALS.as_ref(),
     };
-    let right: usize = CONFIG().stats.right.iter().sum();
-    let streak = CONFIG().stats.streak;
+    let stats = CONFIG().stats.clone();
     let mut rng = rand::rng();
     rng.reseed().expect("Could not seed RNG");
     let ascending = rng.random::<bool>();
@@ -55,6 +54,11 @@ pub fn TrainerView() -> Element {
     
     rsx! {
         document::Stylesheet { href: asset!("/assets/styles/trainer.css") }
+        
+        p {
+            display: "none",
+            "{round()}"
+        }
         
         Link {
             to: Route::SettingsView {},
@@ -73,7 +77,7 @@ pub fn TrainerView() -> Element {
         }
         
         p {
-            "Score: {right}/{round()} | Streak: {streak}"
+            "Score: {stats.right.iter().sum::<usize>()}/{stats.total} | Streak: {stats.streak}"
         }
         
         IntervalGuesser {
@@ -97,6 +101,7 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
     };
     
     let mut wrong = use_signal(|| false);
+    let mut disabled = use_signal(|| vec![false; interval_list.len()]);
     
     rsx! {
         button {
@@ -125,9 +130,11 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
         div {
             id: "interval-selection",
             
-            for i in interval_list {
+            for (idx, i) in interval_list.iter().enumerate() {
                 button {
                     key: "interval-{i}",
+                    disabled: disabled()[idx],
+                    
                     onclick: move |_| {
                         if *i == interval {
                             let stats = &mut CONFIG.write().stats;
@@ -138,10 +145,15 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
                                 stats.streak = 0;
                                 stats.wrong[interval - 1] += 1;
                             }
+                            stats.total += 1;
                             *round.write() += 1;
                             *wrong.write() = false;
+                            for v in disabled.write().iter_mut() {
+                                *v = false;
+                            }
                         } else {
                             *wrong.write() = true;
+                            disabled.write()[idx] = true;
                         }
                     },
                     
