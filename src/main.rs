@@ -7,9 +7,9 @@ use trainer::TrainerView;
 
 #[derive(Copy, Clone, Default, Debug, PartialEq)]
 enum Difficulty {
+    #[default]
     Basic,
     
-    #[default]
     Advanced,
 }
 

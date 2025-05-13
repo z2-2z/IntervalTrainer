@@ -22,15 +22,21 @@ pub fn SettingsView() -> Element {
                 "Select Difficulty"
             }
             button {
-                id: "difficulty-basic",
-                class: if diff() != Difficulty::Basic { "selectable-difficulty" } else { "selected-difficulty" },
+                class: if diff() != Difficulty::Basic {
+                    "selectable-difficulty"
+                } else {
+                    "selected-difficulty"
+                },
                 onclick: move |_| set_difficulty(Difficulty::Basic),
                 
                 "basic"
             }
             button {
-                id: "difficulty-advanced",
-                class: if diff() != Difficulty::Advanced { "selectable-difficulty" } else { "selected-difficulty" },
+                class: if diff() != Difficulty::Advanced {
+                    "selectable-difficulty"
+                } else {
+                    "selected-difficulty"
+                },
                 onclick: move |_| set_difficulty(Difficulty::Advanced),
                 
                 "advanced"
