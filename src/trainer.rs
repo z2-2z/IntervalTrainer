@@ -50,7 +50,7 @@ pub fn TrainerView() -> Element {
         let first = rng.random_range(interval..audio_files.len());
         (first, first - interval)
     };
-    let round = use_signal(|| 0usize);
+    let round = use_signal(|| 0usize); // just exists to signal re-renders to this component
     
     rsx! {
         document::Stylesheet { href: asset!("/assets/styles/trainer.css") }
@@ -60,24 +60,18 @@ pub fn TrainerView() -> Element {
             "{round()}"
         }
         
-        Link {
-            to: Route::SettingsView {},
+        div {
+            id: "navigation",
             
-            "settings"
-        }
-        
-        Link {
-            to: Route::StatisticsView {},
+            Link {
+                to: Route::SettingsView {},
+                "settings"
+            }
             
-            "stats"
-        }
-        
-        h1 {
-            "Trainer"
-        }
-        
-        p {
-            "Score: {stats.right.iter().sum::<usize>()}/{stats.total} | Streak: {stats.streak}"
+            Link {
+                to: Route::StatisticsView {},
+                "stats"
+            }
         }
         
         IntervalGuesser {
@@ -86,6 +80,20 @@ pub fn TrainerView() -> Element {
             interval,
             first,
             second,
+        }
+        
+        div {
+            id: "stats",
+            
+            span {
+                id: "stats-score",
+                "Score: {stats.right.iter().sum::<usize>()}/{stats.total}"
+            }
+            
+            span {
+                id: "stats-streak",
+                "Streak: {stats.streak}"
+            }
         }
     }
 }
@@ -105,6 +113,8 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
     
     rsx! {
         button {
+            id: "play-button",
+            
             onclick: move |_| async move {
                 document::eval(
                     r#"
@@ -133,6 +143,7 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
             for (idx, i) in interval_list.iter().enumerate() {
                 button {
                     key: "interval-{i}",
+                    class: "interval-button",
                     disabled: disabled()[idx],
                     
                     onclick: move |_| {
@@ -163,6 +174,8 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
         }
         
         div {
+            display: "none",
+            
             audio {
                 src: audio_files[first],
                 id: "audio-first",
