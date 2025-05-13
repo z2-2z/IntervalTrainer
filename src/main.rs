@@ -6,6 +6,12 @@ use settings::SettingsView;
 use trainer::TrainerView;
 
 #[derive(Copy, Clone, Default, Debug, PartialEq)]
+enum Instrument {
+    #[default]
+    Piano,
+}
+
+#[derive(Copy, Clone, Default, Debug, PartialEq)]
 enum Difficulty {
     #[default]
     Basic,
@@ -16,6 +22,7 @@ enum Difficulty {
 #[derive(Clone, Default)]
 struct AppConfig {
     difficulty: Difficulty,
+    instrument: Instrument,
 }
 
 static CONFIG: GlobalSignal<AppConfig> = Global::new(AppConfig::default);
@@ -36,7 +43,6 @@ fn main() {
 #[component]
 fn App() -> Element {
     rsx! {
-        document::Stylesheet { href: asset!("/assets/main.css") }
         Router::<Route> {}
     }
 }
