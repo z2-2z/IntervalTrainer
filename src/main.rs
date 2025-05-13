@@ -1,5 +1,4 @@
 use dioxus::prelude::*;
-use dioxus::logger::tracing::Level;
 
 mod instrument;
 mod settings;
@@ -39,6 +38,7 @@ struct AppConfig {
 
 static CONFIG: GlobalSignal<AppConfig> = Global::new(AppConfig::default);
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Routable, Clone, PartialEq)]
 enum Route {
     #[route("/")]
@@ -52,12 +52,6 @@ enum Route {
 }
 
 fn main() {
-    #[cfg(debug_assertions)]
-    let level = Level::INFO;
-    #[cfg(not(debug_assertions))]
-    let level = Level::INFO;
-    
-    dioxus::logger::init(level).expect("logger failed to init");
     dioxus::launch(App);
 }
 

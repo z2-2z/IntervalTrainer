@@ -1,6 +1,5 @@
 use rand::Rng;
 use dioxus::prelude::*;
-use dioxus::logger::tracing::info;
 use crate::{Route, CONFIG, instrument::load_instrument, Difficulty};
 
 const BASIC_INTERVALS: [usize; 7] = [
@@ -32,39 +31,83 @@ pub fn TrainerView() -> Element {
         
         IntervalGuesser {
             round: round,
-            num_files: audio_files.len(),
+            audio_files,
         }
     }
 }
 
 #[component]
-fn IntervalGuesser(round: Signal<usize>, num_files: usize) -> Element {
+fn IntervalGuesser(round: Signal<usize>, audio_files: Vec<Asset>) -> Element {
+    let difficulty = CONFIG().difficulty;
     let mut rng = rand::rng();
     rng.reseed().expect("Could not seed RNG");
-    
     let ascending = rng.random::<bool>();
-    let interval = match CONFIG().difficulty {
+    let interval = match &difficulty {
         Difficulty::Basic => BASIC_INTERVALS[rng.random_range(..BASIC_INTERVALS.len())],
         Difficulty::Advanced => ADVANCED_INTERVALS[rng.random_range(..ADVANCED_INTERVALS.len())],
     };
-    let start_point = if ascending {
-        rng.random_range(..num_files-interval)
+    let (first, second) = if ascending {
+        let first = rng.random_range(..audio_files.len() - interval);
+        (first, first + interval)
     } else {
-        rng.random_range(interval..num_files)
+        let first = rng.random_range(interval..audio_files.len());
+        (first, first - interval)
     };
     let mut wrong = use_signal(|| false);
-    
-    info!("Random interval: ascending={} start_point={} interval={}", ascending, start_point, interval);
-    
+
     rsx! {
         h1 {
             "Trainer"
         }
         
-        
-        
         p {
-            "ascending={ascending} start_point={start_point} interval={interval}"
+            "ascending={ascending} firs={first} second={second} interval={interval}"
+        }
+        
+        audio {
+            src: audio_files[first],
+            id: "audio-first",
+            controls: false,
+            autoplay: false,
+            display: "none",
+        }
+        
+        audio {
+            src: audio_files[second],
+            id: "audio-second",
+            controls: false,
+            autoplay: false,
+            display: "none",
+        }
+        
+        button {
+            onclick: move |_| async move {
+                document::eval(
+                    r#"
+                        const first = document.getElementById("audio-first");
+                        const second = document.getElementById("audio-second");
+                        first.play();
+                        setTimeout(() => {
+                            second.play();
+                        }, 750);
+                        setTimeout(() => {
+                            first.pause();
+                            first.currentTime = 0;
+                            second.pause();
+                            second.currentTime = 0;
+                        }, 1750);
+                    "#
+                ).await.expect("Eval JS code failed");
+            },
+            
+            "play"
+        }
+        
+        match &difficulty {
+            Difficulty::Basic => {
+                
+            },
+            Difficulty::Advanced => {},
         }
         
         button {
@@ -78,10 +121,10 @@ fn IntervalGuesser(round: Signal<usize>, num_files: usize) -> Element {
                 let stats = &mut CONFIG.write().stats;
                 if !wrong() {
                     stats.streak += 1;
-                    stats.right[interval] += 1;
+                    stats.right[interval - 1] += 1;
                 } else {
                     stats.streak = 0;
-                    stats.wrong[interval] += 1;
+                    stats.wrong[interval - 1] += 1;
                 }
                 *round.write() += 1;
                 *wrong.write() = false;

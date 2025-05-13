@@ -33,6 +33,7 @@ pub fn load_instrument(inst: Instrument) -> Vec<Asset> {
     files.push(asset!("/assets/instruments/piano/A2.mp3"));
     files.push(asset!("/assets/instruments/piano/Bb2.mp3"));
     files.push(asset!("/assets/instruments/piano/B2.mp3"));
+    
     files.push(asset!("/assets/instruments/piano/C3.mp3"));
     files.push(asset!("/assets/instruments/piano/Db3.mp3"));
     files.push(asset!("/assets/instruments/piano/D3.mp3"));
@@ -69,6 +70,7 @@ pub fn load_instrument(inst: Instrument) -> Vec<Asset> {
     files.push(asset!("/assets/instruments/piano/A5.mp3"));
     files.push(asset!("/assets/instruments/piano/Bb5.mp3"));
     files.push(asset!("/assets/instruments/piano/B5.mp3"));
+    
     files.push(asset!("/assets/instruments/piano/C6.mp3"));
     files.push(asset!("/assets/instruments/piano/Db6.mp3"));
     files.push(asset!("/assets/instruments/piano/D6.mp3"));
@@ -94,5 +96,6 @@ pub fn load_instrument(inst: Instrument) -> Vec<Asset> {
     files.push(asset!("/assets/instruments/piano/Bb7.mp3"));
     files.push(asset!("/assets/instruments/piano/B7.mp3"));
     files.push(asset!("/assets/instruments/piano/C8.mp3"));
+    
     files
 }
