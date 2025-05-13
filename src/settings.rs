@@ -15,6 +15,7 @@ pub fn SettingsView() -> Element {
     };
     
     rsx! {
+        document::Stylesheet { href: asset!("/assets/styles/normalize.css") }
         document::Stylesheet { href: asset!("/assets/styles/settings.css") }
         
         Link {

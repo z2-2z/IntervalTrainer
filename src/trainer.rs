@@ -53,6 +53,7 @@ pub fn TrainerView() -> Element {
     let round = use_signal(|| 0usize); // just exists to signal re-renders to this component
     
     rsx! {
+        document::Stylesheet { href: asset!("/assets/styles/normalize.css") }
         document::Stylesheet { href: asset!("/assets/styles/trainer.css") }
         
         p {
