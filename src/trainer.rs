@@ -91,11 +91,11 @@ fn IntervalGuesser(round: Signal<usize>, audio_files: &'static [Asset]) -> Eleme
                         first.play();
                         setTimeout(() => {
                             second.play();
+                            first.pause();
                         }, 750);
                         setTimeout(() => {
-                            first.pause();
-                            first.currentTime = 0;
                             second.pause();
+                            first.currentTime = 0;
                             second.currentTime = 0;
                         }, 2000);
                     "#
