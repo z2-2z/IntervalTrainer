@@ -1,0 +1,8 @@
+
+.selectable-difficulty {
+    color: green;
+}
+
+.selected-difficulty {
+    color: red;
+}

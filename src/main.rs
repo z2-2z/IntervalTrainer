@@ -5,7 +5,7 @@ mod trainer;
 use settings::SettingsView;
 use trainer::TrainerView;
 
-#[derive(Copy, Clone, Default, Debug)]
+#[derive(Copy, Clone, Default, Debug, PartialEq)]
 enum Difficulty {
     Basic,
     
