@@ -1,7 +1,7 @@
 use dioxus::prelude::*;
 
-pub static PIANO: [Asset; 88] = [
-    asset!("/assets/instruments/piano/A0.mp3"),
+pub static PIANO: [Asset; 61] = [
+    /*asset!("/assets/instruments/piano/A0.mp3"),
     asset!("/assets/instruments/piano/Bb0.mp3"),
     asset!("/assets/instruments/piano/B0.mp3"),
     asset!("/assets/instruments/piano/C1.mp3"),
@@ -15,7 +15,7 @@ pub static PIANO: [Asset; 88] = [
     asset!("/assets/instruments/piano/Ab1.mp3"),
     asset!("/assets/instruments/piano/A1.mp3"),
     asset!("/assets/instruments/piano/Bb1.mp3"),
-    asset!("/assets/instruments/piano/B1.mp3"),
+    asset!("/assets/instruments/piano/B1.mp3"),*/
     asset!("/assets/instruments/piano/C2.mp3"),
     asset!("/assets/instruments/piano/Db2.mp3"),
     asset!("/assets/instruments/piano/D2.mp3"),
@@ -77,7 +77,7 @@ pub static PIANO: [Asset; 88] = [
     asset!("/assets/instruments/piano/Bb6.mp3"),
     asset!("/assets/instruments/piano/B6.mp3"),
     asset!("/assets/instruments/piano/C7.mp3"),
-    asset!("/assets/instruments/piano/Db7.mp3"),
+    /*asset!("/assets/instruments/piano/Db7.mp3"),
     asset!("/assets/instruments/piano/D7.mp3"),
     asset!("/assets/instruments/piano/Eb7.mp3"),
     asset!("/assets/instruments/piano/E7.mp3"),
@@ -88,5 +88,5 @@ pub static PIANO: [Asset; 88] = [
     asset!("/assets/instruments/piano/A7.mp3"),
     asset!("/assets/instruments/piano/Bb7.mp3"),
     asset!("/assets/instruments/piano/B7.mp3"),
-    asset!("/assets/instruments/piano/C8.mp3"),
+    asset!("/assets/instruments/piano/C8.mp3"),*/
 ];

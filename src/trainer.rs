@@ -54,7 +54,7 @@ pub fn TrainerView() -> Element {
     
     rsx! {
         div {
-            class: "tabs is-centered mt-2",
+            class: "tabs is-centered pt-2 is-size-6",
             
             ul {
                 li {
@@ -124,13 +124,21 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
     let mut wrong = use_signal(|| false);
     let mut disabled = use_signal(|| vec![false; interval_list.len()]);
     
+    fn button_class(disabled: bool) -> &'static str {
+        if disabled {
+            "is-danger is-outlined"
+        } else {
+            ""
+        }
+    }
+    
     rsx! {
         div {
             class: "columns is-fullwidth mx-2",
             
             div {
                 class: "column is-full",
-                style: "height: 300px;",
+                style: "height: 250px;",
                 
                 button {
                     class: "button is-fullwidth is-large",
@@ -171,7 +179,7 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
                             
                             button {
                                 key: "interval-{i}",
-                                class: "button is-large is-fullwidth",
+                                class: "button is-large is-fullwidth {button_class(disabled()[idx])}",
                                 disabled: disabled()[idx],
                                 
                                 onclick: move |_| {
