@@ -64,7 +64,7 @@ fn App() -> Element {
         
         div {
             "data-theme": "light",
-            class: "theme-light",
+            class: "theme-light container is-max-tablet",
             "style": "height: 100%;",
             
             Router::<Route> {}

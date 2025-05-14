@@ -53,14 +53,8 @@ pub fn TrainerView() -> Element {
     let round = use_signal(|| 0usize); // just exists to signal re-renders to this component
     
     rsx! {
-        h1 {
-            class: "title is-3 has-text-centered",
-            style: "margin-top: var(--bulma-block-spacing)",
-            "Interval Trainer"
-        }
-        
         div {
-            class: "tabs is-centered",
+            class: "tabs is-centered mt-2",
             
             ul {
                 li {
@@ -86,6 +80,19 @@ pub fn TrainerView() -> Element {
         }
         
         div {
+            class: "block",
+            
+            h1 {
+                class: "subtitle is-1 has-text-centered",
+                
+                span {
+                    "{stats.streak}"
+                }
+            }
+        }
+        
+        div {
+            class: "block",
             
             IntervalGuesser {
                 round,
@@ -96,19 +103,7 @@ pub fn TrainerView() -> Element {
             }
         }
         
-        div {
-            
-            span {
-                id: "stats-score",
-                "Score: {stats.right.iter().sum::<usize>()}/{stats.total}"
-            }
-            
-            span {
-                id: "stats-streak",
-                "Streak: {stats.streak}"
-            }
-        }
-        
+        // Always keep to signal refresh:
         p {
             display: "none",
             "{round()}"
@@ -130,68 +125,80 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
     let mut disabled = use_signal(|| vec![false; interval_list.len()]);
     
     rsx! {
-        button {
-            id: "play-button",
-            
-            onclick: move |_| async move {
-                document::eval(
-                    r#"
-                        const first = document.getElementById("audio-first");
-                        const second = document.getElementById("audio-second");
-                        first.play();
-                        setTimeout(() => {
-                            second.play();
-                            first.pause();
-                        }, 750);
-                        setTimeout(() => {
-                            second.pause();
-                            first.currentTime = 0;
-                            second.currentTime = 0;
-                        }, 2500);
-                    "#
-                ).await.expect("Eval JS code failed");
-            },
-            
-            "play"
-        }
-        
         div {
-            class: "columns",
-            //style: "border: 1px solid red",
+            class: "columns is-fullwidth mx-2",
             
-            for (idx, i) in interval_list.iter().enumerate() {
-                div {
-                    class: "column",
-                    //style: "border: 1px solid blue",
+            div {
+                class: "column is-full",
+                style: "height: 300px;",
+                
+                button {
+                    class: "button is-fullwidth is-large",
+                    style: "height: 100%;",
                     
-                    button {
-                        key: "interval-{i}",
-                        class: "button is-large",
-                        disabled: disabled()[idx],
-                        
-                        onclick: move |_| {
-                            if *i == interval {
-                                let stats = &mut CONFIG.write().stats;
-                                if !wrong() {
-                                    stats.streak += 1;
-                                    stats.right[interval - 1] += 1;
-                                } else {
-                                    stats.streak = 0;
-                                    stats.wrong[interval - 1] += 1;
-                                }
-                                stats.total += 1;
-                                *round.write() += 1;
-                                *wrong.write() = false;
-                                for v in disabled.write().iter_mut() {
-                                    *v = false;
-                                }
-                            } else {
-                                *wrong.write() = true;
-                                disabled.write()[idx] = true;
+                    onclick: move |_| async move {
+                        document::eval(
+                            r#"
+                                const first = document.getElementById("audio-first");
+                                const second = document.getElementById("audio-second");
+                                first.play();
+                                setTimeout(() => {
+                                    second.play();
+                                    first.pause();
+                                }, 750);
+                                setTimeout(() => {
+                                    second.pause();
+                                    first.currentTime = 0;
+                                    second.currentTime = 0;
+                                }, 2500);
+                            "#
+                        ).await.expect("Eval JS code failed");
+                    },
+                    
+                    "play"
+                }
+            }
+            
+            div {
+                class: "column is-full fixed-grid has-2-cols",
+                
+                div {
+                    class: "grid is-gap-0",
+                    
+                    for (idx, i) in interval_list.iter().enumerate() {
+                        div {
+                            class: "cell",
+                            
+                            button {
+                                key: "interval-{i}",
+                                class: "button is-large is-fullwidth",
+                                disabled: disabled()[idx],
+                                
+                                onclick: move |_| {
+                                    if *i == interval {
+                                        let stats = &mut CONFIG.write().stats;
+                                        if !wrong() {
+                                            stats.streak += 1;
+                                            stats.right[interval - 1] += 1;
+                                        } else {
+                                            stats.streak = 0;
+                                            stats.wrong[interval - 1] += 1;
+                                        }
+                                        stats.total += 1;
+                                        *wrong.write() = false;
+                                        for v in disabled.write().iter_mut() {
+                                            *v = false;
+                                        }
+                                        *round.write() += 1; // signal refresh
+                                    } else {
+                                        *wrong.write() = true;
+                                        disabled.write()[idx] = true;
+                                    }
+                                },
+                                
+                                "{interval_name(*i)}"
                             }
-                        },
-                        
-                        "{interval_name(*i)}"
+                        }
                     }
                 }
             }
