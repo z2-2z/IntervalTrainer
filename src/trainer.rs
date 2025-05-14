@@ -152,9 +152,12 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
                                 first.play();
                                 setTimeout(() => {
                                     second.play();
-                                    first.pause();
                                 }, 750);
                                 setTimeout(() => {
+                                    first.pause();
+                                }, 1000);
+                                setTimeout(() => {
+                                    first.pause();
                                     second.pause();
                                     first.currentTime = 0;
                                     second.currentTime = 0;
@@ -163,7 +166,11 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
                         ).await.expect("Eval JS code failed");
                     },
                     
-                    "play"
+                    span {
+                        img {
+                            src: asset!("/assets/icons/notes.png"),
+                        }
+                    }
                 }
             }
             
