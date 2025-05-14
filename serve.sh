@@ -10,4 +10,4 @@ then
     exit 1
 fi
 
-dx serve --platform android --hot-reload false
+dx serve --platform android  # --hot-reload false

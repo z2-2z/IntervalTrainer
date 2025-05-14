@@ -53,38 +53,50 @@ pub fn TrainerView() -> Element {
     let round = use_signal(|| 0usize); // just exists to signal re-renders to this component
     
     rsx! {
-        document::Stylesheet { href: asset!("/assets/styles/normalize.css") }
-        document::Stylesheet { href: asset!("/assets/styles/trainer.css") }
-        
-        p {
-            display: "none",
-            "{round()}"
+        h1 {
+            class: "title is-3 has-text-centered",
+            style: "margin-top: var(--bulma-block-spacing)",
+            "Interval Trainer"
         }
         
         div {
-            id: "navigation",
+            class: "tabs is-centered",
             
-            Link {
-                to: Route::SettingsView {},
-                "settings"
+            ul {
+                li {
+                    class: "is-active",
+                    Link {
+                        to: "",
+                        "Trainer"
+                    }
+                }
+                li {
+                    Link {
+                        to: Route::StatisticsView {},
+                        "Statistics"
+                    }
+                }
+                li {
+                    Link {
+                        to: Route::SettingsView {},
+                        "Settings"
+                    }
+                }
             }
-            
-            Link {
-                to: Route::StatisticsView {},
-                "stats"
-            }
-        }
-        
-        IntervalGuesser {
-            round,
-            ascending,
-            interval,
-            first,
-            second,
         }
         
         div {
-            id: "stats",
+            
+            IntervalGuesser {
+                round,
+                ascending,
+                interval,
+                first,
+                second,
+            }
+        }
+        
+        div {
             
             span {
                 id: "stats-score",
@@ -95,6 +107,11 @@ pub fn TrainerView() -> Element {
                 id: "stats-streak",
                 "Streak: {stats.streak}"
             }
+        }
+        
+        p {
+            display: "none",
+            "{round()}"
         }
     }
 }
@@ -139,37 +156,43 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
         }
         
         div {
-            id: "interval-selection",
+            class: "columns",
+            //style: "border: 1px solid red",
             
             for (idx, i) in interval_list.iter().enumerate() {
-                button {
-                    key: "interval-{i}",
-                    class: "interval-button",
-                    disabled: disabled()[idx],
+                div {
+                    class: "column",
+                    //style: "border: 1px solid blue",
                     
-                    onclick: move |_| {
-                        if *i == interval {
-                            let stats = &mut CONFIG.write().stats;
-                            if !wrong() {
-                                stats.streak += 1;
-                                stats.right[interval - 1] += 1;
+                    button {
+                        key: "interval-{i}",
+                        class: "button is-large",
+                        disabled: disabled()[idx],
+                        
+                        onclick: move |_| {
+                            if *i == interval {
+                                let stats = &mut CONFIG.write().stats;
+                                if !wrong() {
+                                    stats.streak += 1;
+                                    stats.right[interval - 1] += 1;
+                                } else {
+                                    stats.streak = 0;
+                                    stats.wrong[interval - 1] += 1;
+                                }
+                                stats.total += 1;
+                                *round.write() += 1;
+                                *wrong.write() = false;
+                                for v in disabled.write().iter_mut() {
+                                    *v = false;
+                                }
                             } else {
-                                stats.streak = 0;
-                                stats.wrong[interval - 1] += 1;
+                                *wrong.write() = true;
+                                disabled.write()[idx] = true;
                             }
-                            stats.total += 1;
-                            *round.write() += 1;
-                            *wrong.write() = false;
-                            for v in disabled.write().iter_mut() {
-                                *v = false;
-                            }
-                        } else {
-                            *wrong.write() = true;
-                            disabled.write()[idx] = true;
-                        }
-                    },
-                    
-                    "{interval_name(*i)}"
+                        },
+                        
+                        "{interval_name(*i)}"
+                    }
                 }
             }
         }

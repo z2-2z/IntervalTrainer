@@ -59,6 +59,15 @@ fn main() {
 #[component]
 fn App() -> Element {
     rsx! {
-        Router::<Route> {}
+        document::Stylesheet { href: asset!("/assets/styles/bulma.css") }
+        document::Stylesheet { href: asset!("/assets/styles/main.css") }
+        
+        div {
+            "data-theme": "light",
+            class: "theme-light",
+            "style": "height: 100%;",
+            
+            Router::<Route> {}
+        }
     }
 }
