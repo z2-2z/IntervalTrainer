@@ -97,7 +97,7 @@ pub fn StatisticsView() -> Element {
             }
         
             div {
-                class: "columns",
+                class: "columns mx-2",
                 
                 for interval in intervals {
                     div {

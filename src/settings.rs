@@ -42,7 +42,7 @@ pub fn SettingsView() -> Element {
         }
         
         div {
-            class: "block mx-3",
+            class: "block mx-4",
             
             h1 {
                 class: "subtitle is-4",
@@ -74,7 +74,7 @@ pub fn SettingsView() -> Element {
         }
         
         div {
-            class: "block mx-3",
+            class: "block mx-4",
             
             h1 {
                 class: "subtitle is-4",
