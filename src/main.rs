@@ -53,6 +53,7 @@ enum Route {
 }
 
 fn main() {
+    rand::rng().reseed().expect("Could not seed RNG");
     dioxus::launch(App);
 }
 

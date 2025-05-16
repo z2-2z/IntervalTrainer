@@ -39,7 +39,6 @@ pub fn TrainerView() -> Element {
         Difficulty::Advanced => ADVANCED_INTERVALS.as_ref(),
     };
     let mut rng = rand::rng();
-    rng.reseed().expect("Could not seed RNG");
     let ascending = rng.random::<bool>();
     let interval = interval_list[rng.random_range(..interval_list.len())];
     let (first, second) = if ascending {
