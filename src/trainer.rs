@@ -110,9 +110,9 @@ struct GuesserState {
 }
 
 impl GuesserState {
-    fn new(num_intervals: usize, streak: usize) -> Self {
+    fn new(num_intervals: usize) -> Self {
         Self {
-            streak,
+            streak: 0,
             wrong: false,
             disabled: vec![false; num_intervals],
         }
@@ -124,12 +124,13 @@ impl GuesserState {
         self.disabled[idx] = true;
     }
     
-    fn right(&mut self) {
+    fn right(&mut self) -> usize {
         self.wrong = false;
         self.streak += 1;
         for v in &mut self.disabled {
             *v = false;
         }
+        self.streak
     }
 }
 
@@ -143,7 +144,8 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
         Difficulty::Advanced => ADVANCED_INTERVALS.as_ref(),
     };
     
-    let mut state = use_signal(|| GuesserState::new(interval_list.len(), CONFIG().stats.streak));
+    let mut state = use_signal(|| GuesserState::new(interval_list.len()));
+    state.write().streak = CONFIG().stats.streak;
     
     rsx! {
         div {
@@ -229,8 +231,7 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
                                             stats.total += 1;
                                             
                                             /* Reset state */
-                                            state.write().right();
-                                            stats.streak = state.read().streak;
+                                            stats.streak = state.write().right();
                                             
                                             /* Signal refresh to get new interval */
                                             *round.write() += 1;
