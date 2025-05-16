@@ -1,33 +1,6 @@
 use rand::Rng;
 use dioxus::prelude::*;
-use crate::{Route, CONFIG, instrument, Difficulty, Instrument};
-
-const BASIC_INTERVALS: [usize; 7] = [
-    2,4,5,7,9,11,12,
-];
-const ADVANCED_INTERVALS: [usize; 14] = [
-    1,2,3,4,5,6,7,8,9,10,11,12,13,14
-];
-
-pub fn interval_name(interval: usize) -> &'static str {
-    match interval {
-        1 => "Minor 2nd",
-        2 => "Major 2nd",
-        3 => "Minor 3rd",
-        4 => "Major 3rd",
-        5 => "Perfect 4th",
-        6 => "Tritone",
-        7 => "Perfect 5th",
-        8 => "Minor 6th",
-        9 => "Major 6th",
-        10 => "Minor 7th",
-        11 => "Major 7th",
-        12 => "Octave",
-        13 => "Minor 9th",
-        14 => "Major 9th",
-        _ => unreachable!(),
-    }
-}
+use crate::{Route, CONFIG, instrument, Difficulty, Instrument, BASIC_INTERVALS, ADVANCED_INTERVALS, interval_name};
 
 #[component]
 pub fn TrainerView() -> Element {

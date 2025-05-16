@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use crate::{CONFIG, Route, Stats, trainer::interval_name};
+use crate::{CONFIG, Route, Stats, interval_name};
 
 #[inline(always)]
 fn stats_score(stats: &Stats, interval: usize) -> isize {
