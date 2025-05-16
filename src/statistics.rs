@@ -1,5 +1,5 @@
 use dioxus::prelude::*;
-use crate::{CONFIG, Route, Stats};
+use crate::{CONFIG, Route, Stats, trainer::interval_name};
 
 #[inline(always)]
 fn stats_score(stats: &Stats, interval: usize) -> isize {
@@ -10,7 +10,7 @@ fn sort_by_score(stats: &Stats) -> Vec<usize> {
     let mut ret = Vec::new();
     
     for i in 0..stats.wrong.len() {
-        if stats.right[i] != 0 && stats.wrong[i] != 0 {
+        if stats.right[i] != 0 || stats.wrong[i] != 0 {
             ret.push(i);
         }
     }
@@ -40,12 +40,22 @@ fn sort_by_score(stats: &Stats) -> Vec<usize> {
     ret
 }
 
+fn stats_pct<const RIGHT: bool>(stats: &Stats, interval: usize) -> f64 {
+    let total = stats.wrong[interval] + stats.right[interval];
+    
+    if RIGHT {
+        stats.right[interval] as f64 * 100.0 / total as f64
+    } else {
+        stats.wrong[interval] as f64 * 100.0 / total as f64
+    }
+}
+
 #[component]
 pub fn StatisticsView() -> Element {
     let stats = CONFIG().stats.clone();
     let total_right = stats.right.iter().sum::<usize>();
     let score = total_right as f64 * 100.0 / stats.total as f64;
-    let indices = sort_by_score(&stats);
+    let intervals = sort_by_score(&stats);
     
     rsx! {
         div {
@@ -85,14 +95,44 @@ pub fn StatisticsView() -> Element {
                 
                 "Score: {score:.00}%"
             }
-            
-            p {
-                "{stats:#?}"
-            }
-            
-            p {
-                "{indices:#?}"
-            }
+        
+            div {
+                class: "columns",
+                
+                for interval in intervals {
+                    div {
+                        class: "column",
+                        
+                        if stats.wrong[interval] >= stats.right[interval] {
+                            p {
+                                class: "",
+                                "{interval_name(interval + 1)}: {stats_pct::<false>(&stats, interval):.00}% wrong"
+                            }
+                            
+                            progress {
+                                class: "progress is-medium is-danger",
+                                "value": "{stats.wrong[interval]}",
+                                "max": "{stats.right[interval] + stats.wrong[interval]}",
+                                
+                                "{stats_pct::<false>(&stats, interval):.00}%"
+                            }
+                        } else {
+                            p {
+                                class: "",
+                                "{interval_name(interval + 1)}: {stats_pct::<true>(&stats, interval):.00}% right"
+                            }
+                            
+                            progress {
+                                class: "progress is-medium is-success",
+                                "value": "{stats.right[interval]}",
+                                "max": "{stats.right[interval] + stats.wrong[interval]}",
+                                
+                                "{stats_pct::<true>(&stats, interval):.00}%"
+                            }
+                        }
+                    }
+                }
+            }    
         }
     }
 }

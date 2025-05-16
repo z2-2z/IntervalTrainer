@@ -9,7 +9,7 @@ const ADVANCED_INTERVALS: [usize; 14] = [
     1,2,3,4,5,6,7,8,9,10,11,12,13,14
 ];
 
-fn interval_name(interval: usize) -> &'static str {
+pub fn interval_name(interval: usize) -> &'static str {
     match interval {
         1 => "Minor 2nd",
         2 => "Major 2nd",
