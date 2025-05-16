@@ -12,7 +12,6 @@ use statistics::StatisticsView;
 struct Stats {
     right: [usize; 14],
     wrong: [usize; 14],
-    streak: usize,
     total: usize,
 }
 

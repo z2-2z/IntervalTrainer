@@ -38,7 +38,6 @@ pub fn TrainerView() -> Element {
         Difficulty::Basic => BASIC_INTERVALS.as_ref(),
         Difficulty::Advanced => ADVANCED_INTERVALS.as_ref(),
     };
-    let stats = CONFIG().stats.clone();
     let mut rng = rand::rng();
     rng.reseed().expect("Could not seed RNG");
     let ascending = rng.random::<bool>();
@@ -79,34 +78,57 @@ pub fn TrainerView() -> Element {
             }
         }
         
-        div {
-            class: "block",
-            
-            h1 {
-                class: "subtitle is-1 has-text-centered",
-                
-                span {
-                    "{stats.streak}"
-                }
-            }
-        }
-        
-        div {
-            class: "block",
-            
-            IntervalGuesser {
-                round,
-                ascending,
-                interval,
-                first,
-                second,
-            }
+        IntervalGuesser {
+            round,
+            ascending,
+            interval,
+            first,
+            second,
         }
         
         // Always keep to signal refresh:
         p {
             display: "none",
             "{round()}"
+        }
+    }
+}
+
+#[inline(always)]
+fn button_class(disabled: bool) -> &'static str {
+    if disabled {
+        "is-danger is-outlined"
+    } else {
+        ""
+    }
+}
+
+struct GuesserState {
+    streak: usize,
+    wrong: bool,
+    disabled: Vec<bool>,
+}
+
+impl GuesserState {
+    fn new(num_intervals: usize) -> Self {
+        Self {
+            streak: 0,
+            wrong: false,
+            disabled: vec![false; num_intervals],
+        }
+    }
+    
+    fn wrong(&mut self, idx: usize) {
+        self.wrong = true;
+        self.streak = 0;
+        self.disabled[idx] = true;
+    }
+    
+    fn right(&mut self) {
+        self.wrong = false;
+        self.streak += 1;
+        for v in &mut self.disabled {
+            *v = false;
         }
     }
 }
@@ -121,97 +143,103 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
         Difficulty::Advanced => ADVANCED_INTERVALS.as_ref(),
     };
     
-    let mut wrong = use_signal(|| false);
-    let mut disabled = use_signal(|| vec![false; interval_list.len()]);
-    
-    fn button_class(disabled: bool) -> &'static str {
-        if disabled {
-            "is-danger is-outlined"
-        } else {
-            ""
-        }
-    }
+    let mut state = use_signal(|| GuesserState::new(interval_list.len()));
     
     rsx! {
         div {
-            class: "columns is-fullwidth mx-2",
+            class: "block",
             
-            div {
-                class: "column is-full",
-                style: "height: 250px;",
+            h1 {
+                class: "subtitle is-1 has-text-centered",
                 
-                button {
-                    class: "button is-fullwidth is-large",
-                    style: "height: 100%;",
+                span {
+                    "{state.read().streak}"
+                }
+            }
+        }
+        
+        div {
+            class: "block",
+        
+            div {
+                class: "columns is-fullwidth mx-2",
+                
+                div {
+                    class: "column is-full",
+                    style: "height: 250px;",
                     
-                    onclick: move |_| async move {
-                        document::eval(
-                            r#"
-                                const first = document.getElementById("audio-first");
-                                const second = document.getElementById("audio-second");
-                                first.play();
-                                setTimeout(() => {
-                                    second.play();
-                                }, 750);
-                                setTimeout(() => {
-                                    first.pause();
-                                }, 1000);
-                                setTimeout(() => {
-                                    first.pause();
-                                    second.pause();
-                                    first.currentTime = 0;
-                                    second.currentTime = 0;
-                                }, 2500);
-                            "#
-                        ).await.expect("Eval JS code failed");
-                    },
-                    
-                    span {
-                        img {
-                            src: asset!("/assets/icons/notes.png"),
+                    button {
+                        class: "button is-fullwidth is-large",
+                        style: "height: 100%;",
+                        
+                        onclick: move |_| async move {
+                            document::eval(
+                                r#"
+                                    const first = document.getElementById("audio-first");
+                                    const second = document.getElementById("audio-second");
+                                    first.play();
+                                    setTimeout(() => {
+                                        second.play();
+                                    }, 750);
+                                    setTimeout(() => {
+                                        first.pause();
+                                    }, 1000);
+                                    setTimeout(() => {
+                                        first.pause();
+                                        second.pause();
+                                        first.currentTime = 0;
+                                        second.currentTime = 0;
+                                    }, 2500);
+                                "#
+                            ).await.expect("Eval JS code failed");
+                        },
+                        
+                        span {
+                            img {
+                                src: asset!("/assets/icons/notes.png"),
+                            }
                         }
                     }
                 }
-            }
-            
-            div {
-                class: "column is-full fixed-grid has-2-cols",
                 
                 div {
-                    class: "grid is-gap-0",
+                    class: "column is-full fixed-grid has-2-cols",
                     
-                    for (idx, i) in interval_list.iter().enumerate() {
-                        div {
-                            class: "cell",
-                            
-                            button {
-                                key: "interval-{i}",
-                                class: "button is-large is-fullwidth {button_class(disabled()[idx])}",
-                                disabled: disabled()[idx],
+                    div {
+                        class: "grid is-gap-0",
+                        
+                        for (idx, i) in interval_list.iter().enumerate() {
+                            div {
+                                class: "cell",
                                 
-                                onclick: move |_| {
-                                    if *i == interval {
-                                        let stats = &mut CONFIG.write().stats;
-                                        if !wrong() {
-                                            stats.streak += 1;
-                                            stats.right[interval - 1] += 1;
+                                button {
+                                    key: "interval-{i}",
+                                    class: "button is-large is-fullwidth {button_class(state.read().disabled[idx])}",
+                                    disabled: state.read().disabled[idx],
+                                    
+                                    onclick: move |_| {
+                                        if *i == interval {
+                                            /* Update stats */                                            
+                                            let stats = &mut CONFIG.write().stats;
+                                            if !state.read().wrong {
+                                                stats.right[interval - 1] += 1;
+                                            } else {
+                                                stats.wrong[interval - 1] += 1;
+                                            }
+                                            stats.total += 1;
+                                            
+                                            /* Reset state */
+                                            state.write().right();
+                                            
+                                            /* Signal refresh to get new interval */
+                                            *round.write() += 1;
                                         } else {
-                                            stats.streak = 0;
-                                            stats.wrong[interval - 1] += 1;
+                                            state.write().wrong(idx);
                                         }
-                                        stats.total += 1;
-                                        *wrong.write() = false;
-                                        for v in disabled.write().iter_mut() {
-                                            *v = false;
-                                        }
-                                        *round.write() += 1; // signal refresh
-                                    } else {
-                                        *wrong.write() = true;
-                                        disabled.write()[idx] = true;
-                                    }
-                                },
-                                
-                                "{interval_name(*i)}"
+                                    },
+                                    
+                                    "{interval_name(*i)}"
+                                }
                             }
                         }
                     }
