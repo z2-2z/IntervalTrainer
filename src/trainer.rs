@@ -2,26 +2,43 @@ use rand::Rng;
 use dioxus::prelude::*;
 use crate::{Route, CONFIG, instrument, Difficulty, Instrument, BASIC_INTERVALS, ADVANCED_INTERVALS, interval_name};
 
+#[derive(Default)]
+struct TrainerState {
+    interval: usize,
+    first: usize,
+    second: usize,
+}
+
+impl TrainerState {
+    fn shuffle(&mut self, interval_list: &[usize], audio_files: &[Asset]) {
+        let mut rng = rand::rng();
+        
+        let ascending = rng.random::<bool>();
+        self.interval = interval_list[rng.random_range(..interval_list.len())];
+        if ascending {
+            self.first = rng.random_range(..audio_files.len() - self.interval);
+            self.second = self.first + self.interval
+        } else {
+            self.first = rng.random_range(self.interval..audio_files.len());
+            self.second = self.first - self.interval;
+        };
+    }
+}
+
 #[component]
 pub fn TrainerView() -> Element {
-    let audio_files: &[Asset] = match CONFIG().instrument {
-        Instrument::Piano => instrument::PIANO.as_ref(),
-    };
-    let interval_list = match CONFIG().difficulty {
-        Difficulty::Basic => BASIC_INTERVALS.as_ref(),
-        Difficulty::Advanced => ADVANCED_INTERVALS.as_ref(),
-    };
-    let mut rng = rand::rng();
-    let ascending = rng.random::<bool>();
-    let interval = interval_list[rng.random_range(..interval_list.len())];
-    let (first, second) = if ascending {
-        let first = rng.random_range(..audio_files.len() - interval);
-        (first, first + interval)
-    } else {
-        let first = rng.random_range(interval..audio_files.len());
-        (first, first - interval)
-    };
-    let round = use_signal(|| 0usize); // just exists to signal re-renders to this component
+    let state = use_signal(|| {
+        let audio_files: &[Asset] = match CONFIG.read().instrument {
+            Instrument::Piano => instrument::PIANO.as_ref(),
+        };
+        let interval_list = match CONFIG.read().difficulty {
+            Difficulty::Basic => BASIC_INTERVALS.as_ref(),
+            Difficulty::Advanced => ADVANCED_INTERVALS.as_ref(),
+        };
+        let mut ret = TrainerState::default();
+        ret.shuffle(interval_list, audio_files);
+        ret
+    });
     
     rsx! {
         div {
@@ -51,17 +68,7 @@ pub fn TrainerView() -> Element {
         }
         
         IntervalGuesser {
-            round,
-            ascending,
-            interval,
-            first,
-            second,
-        }
-        
-        // Always keep to signal refresh:
-        p {
-            display: "none",
-            "{round()}"
+            random_interval: state,
         }
     }
 }
@@ -82,18 +89,19 @@ struct GuesserState {
 }
 
 impl GuesserState {
-    fn new(num_intervals: usize) -> Self {
+    fn new(num_intervals: usize, streak: usize) -> Self {
         Self {
-            streak: 0,
+            streak,
             wrong: false,
             disabled: vec![false; num_intervals],
         }
     }
     
-    fn wrong(&mut self, idx: usize) {
+    fn wrong(&mut self, idx: usize) -> usize {
         self.wrong = true;
         self.streak = 0;
         self.disabled[idx] = true;
+        self.streak
     }
     
     fn right(&mut self) -> usize {
@@ -107,7 +115,7 @@ impl GuesserState {
 }
 
 #[component]
-fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first: usize, second: usize) -> Element {
+fn IntervalGuesser(random_interval: Signal<TrainerState>) -> Element {
     let audio_files: &[Asset] = match CONFIG().instrument {
         Instrument::Piano => instrument::PIANO.as_ref(),
     };
@@ -116,8 +124,7 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
         Difficulty::Advanced => ADVANCED_INTERVALS.as_ref(),
     };
     
-    let mut state = use_signal(|| GuesserState::new(interval_list.len()));
-    state.write().streak = CONFIG().stats.streak;
+    let mut state = use_signal(|| GuesserState::new(interval_list.len(), CONFIG().stats.streak));
     
     rsx! {
         div {
@@ -192,23 +199,21 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
                                     disabled: state.read().disabled[idx],
                                     
                                     onclick: move |_| {
-                                        if *i == interval {
+                                        if *i == random_interval.read().interval {
                                             /* Update stats */                                            
                                             let stats = &mut CONFIG.write().stats;
                                             if !state.read().wrong {
-                                                stats.right[interval - 1] += 1;
+                                                stats.right[random_interval.read().interval - 1] += 1;
                                             } else {
-                                                stats.wrong[interval - 1] += 1;
+                                                stats.wrong[random_interval.read().interval - 1] += 1;
                                             }
                                             stats.total += 1;
-                                            
-                                            /* Reset state */
                                             stats.streak = state.write().right();
                                             
                                             /* Signal refresh to get new interval */
-                                            *round.write() += 1;
+                                            random_interval.write().shuffle(interval_list, audio_files);
                                         } else {
-                                            state.write().wrong(idx);
+                                            CONFIG.write().stats.streak = state.write().wrong(idx);
                                         }
                                     },
                                     
@@ -225,7 +230,7 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
             display: "none",
             
             audio {
-                src: audio_files[first],
+                src: audio_files[random_interval.read().first],
                 id: "audio-first",
                 controls: false,
                 autoplay: false,
@@ -233,7 +238,7 @@ fn IntervalGuesser(round: Signal<usize>, ascending: bool, interval: usize, first
             }
             
             audio {
-                src: audio_files[second],
+                src: audio_files[random_interval.read().second],
                 id: "audio-second",
                 controls: false,
                 autoplay: false,
