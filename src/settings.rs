@@ -15,53 +15,84 @@ pub fn SettingsView() -> Element {
     };
     
     rsx! {
-        Link {
-            to: Route::TrainerView {},
-            
-            "back"
-        }
         div {
-            id: "difficulty-selector",
+            class: "tabs is-centered pt-2 is-size-6",
+            
+            ul {
+                li {
+                    Link {
+                        to: Route::TrainerView {},
+                        "Trainer"
+                    }
+                }
+                li {
+                    Link {
+                        to: Route::StatisticsView {},
+                        "Statistics"
+                    }
+                }
+                li {
+                    class: "is-active",
+                    Link {
+                        to: "",
+                        "Settings"
+                    }
+                }
+            }
+        }
+        
+        div {
+            class: "block mx-3",
             
             h1 {
+                class: "subtitle is-4",
                 "Select Difficulty"
             }
-            button {
-                class: if diff() != Difficulty::Basic {
-                    "selectable-difficulty"
-                } else {
-                    "selected-difficulty"
-                },
-                onclick: move |_| set_difficulty(Difficulty::Basic),
-                
-                "basic"
-            }
-            button {
-                class: if diff() != Difficulty::Advanced {
-                    "selectable-difficulty"
-                } else {
-                    "selected-difficulty"
-                },
-                onclick: move |_| set_difficulty(Difficulty::Advanced),
-                
-                "advanced"
+            
+            div {
+                class: "fixed-grid has-2-cols",
+                div {
+                    class: "grid is-gap-1",
+                    
+                    button {
+                        class: "cell button",
+                        disabled: *diff.read() == Difficulty::Basic,
+                        onclick: move |_| set_difficulty(Difficulty::Basic),
+                        
+                        "basic"
+                    }
+                    
+                    button {
+                        class: "cell button",
+                        disabled: *diff.read() == Difficulty::Advanced,
+                        onclick: move |_| set_difficulty(Difficulty::Advanced),
+                        
+                        "advanced"
+                    }
+                }
             }
         }
+        
         div {
-            id: "instrument-selector",
+            class: "block mx-3",
             
             h1 {
+                class: "subtitle is-4",
                 "Select Instrument"
             }
-            button {
-                class: if inst() == Instrument::Piano {
-                    "selected-instrument"
-                } else {
-                    "selectable-instrument"
-                },
-                onclick: move |_| set_instrument(Instrument::Piano),
+            
+            div {
+                class: "grid",
                 
-                "Piano"
+                button {
+                    class: "cell button",
+                    disabled: *inst.read() == Instrument::Piano,
+                    onclick: move |_| set_instrument(Instrument::Piano),
+                    
+                    img {
+                        src: asset!("/assets/icons/piano.png"),
+                    }
+                }
             }
         }
     }
