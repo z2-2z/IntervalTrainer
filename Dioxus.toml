@@ -26,4 +26,4 @@ index_on_404 = true
 [bundle]
 identifier = "com.z2"
 publisher = "z2"
-icon = ["logo.png"]
+icon = ["assets/icons/logo.png"]

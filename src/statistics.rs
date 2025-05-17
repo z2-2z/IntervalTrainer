@@ -132,7 +132,28 @@ pub fn StatisticsView() -> Element {
                         }
                     }
                 }
-            }    
+            }
+            
+            div {
+                class: "mx-4 is-fullwidth",
+                
+                button {
+                    class: "button is-fullwidth",
+                    onclick: move |_| {
+                        let stats = &mut CONFIG.write().stats;
+                        stats.total = 0;
+                        for v in &mut stats.right {
+                            *v = 0;
+                        }
+                        for v in &mut stats.wrong {
+                            *v = 0;
+                        }
+                    },
+                    
+                    "reset"
+                }
+            }
+            
         }
     }
 }
