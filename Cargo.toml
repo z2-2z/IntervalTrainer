@@ -1,6 +1,6 @@
 [package]
 name = "interval-training"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["z2_ <88509734+z2-2z@users.noreply.github.com>"]
 edition = "2021"
 
