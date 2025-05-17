@@ -14,4 +14,4 @@ A small app to train your ear to distinguish intervals.
 </p>
 
 ## Installation
-Download the APK from the [releases]() page.
+Download the APK from the [releases](https://github.com/z2-2z/IntervalTrainer/releases) page.
